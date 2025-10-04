@@ -1,20 +1,20 @@
 # Distinguished
 
-A web-based tool for generating HTML comparison tables of species traits with photos, designed for use in iNaturalist comments and journal posts.
+A tool for generating comparison tables of species traits with photos, designed for use in iNaturalist comments and journal posts. Explain how you made your identification in words and pictures.
 
 ## Features
 
 - Search and select taxa from iNaturalist
-- Define custom traits for comparison
+- Define traits for comparison
 - Add descriptions and photos for each taxon/trait combination
 - Crop images using bounding box selection
-- Generate HTML in two formats:
-  - **Comment mode**: Uses weserv.nl proxy for server-side image cropping
-  - **Journal mode**: Uses CSS-based cropping with inline styles
-- Copy generated HTML to clipboard
-- Live preview of comparison table
+- Generate HTML suitable for pasting into:
+  - **journal posts**: uses vanilla HTML and CSS to embed tables in iNat journal posts or anywhere else that supports HTML
+  - **comments**: uses a 3rd-party image resizing service to get around the lack of CSS in iNaturalist comments
 
 ## Development
+
+Feel free to fork and make this work the way you want it to.
 
 ### Prerequisites
 
@@ -24,7 +24,7 @@ A web-based tool for generating HTML comparison tables of species traits with ph
 ### Setup
 
 ```bash
-# Use correct Node version
+# Use correct Node version if you're using NVM
 nvm use
 
 # Install dependencies
@@ -37,26 +37,12 @@ npm run dev
 npm run build
 ```
 
-### Project Structure
-
-```
-src/
-  routes/
-    +page.svelte              # Main application
-  lib/
-    components/
-      ImageCropper.svelte     # Image cropping modal
-    inat-api.ts              # iNaturalist API integration
-    html-generator.ts        # HTML output generators
-```
-
 ## Deployment
 
 The app is configured with `@sveltejs/adapter-static` for static hosting on GitHub Pages or similar platforms.
 
 ```bash
 npm run build
-# Deploy the build/ directory
 ```
 
 ## Usage
