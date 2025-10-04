@@ -3,11 +3,12 @@
     url: string;
     observationUrl: string;
     id: number;
+    attribution: string;
   }
 
   interface Props {
     taxonId: number;
-    onSelect: (imageUrl: string, linkUrl: string) => void;
+    onSelect: (imageUrl: string, linkUrl: string, attribution: string) => void;
     onCancel: () => void;
   }
 
@@ -35,7 +36,9 @@
         .filter((obs: any) => obs.photos && obs.photos.length > 0)
         .map((obs: any) => ({
           url: obs.photos[0].url,
-          observationUrl: obs.uri
+          observationUrl: obs.uri,
+          id: obs.id,
+          attribution: obs.photos[0].attribution
         }));
 
       loading = false;
@@ -47,7 +50,7 @@
 
   function handlePhotoClick(photo: Photo) {
     const originalUrl = photo.url.replace(/\/square\./, '/original.');
-    onSelect(originalUrl, photo.observationUrl);
+    onSelect(originalUrl, photo.observationUrl, photo.attribution);
   }
 
   function handleOverlayMouseDown(e: MouseEvent) {

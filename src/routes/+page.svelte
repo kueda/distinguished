@@ -25,6 +25,7 @@
     description: string;
     imageUrl: string;
     cropBox?: CropBox;
+    photoAttribution?: string;
     linkUrl?: string;
   }
 
@@ -129,18 +130,23 @@
   }
 
   function clearImage(taxonId: number, traitId: string) {
-    updateCell(taxonId, traitId, { imageUrl: '', cropBox: undefined });
+    updateCell(taxonId, traitId, {
+      imageUrl: '',
+      cropBox: undefined,
+      photoAttribution: ''
+    });
   }
 
   function openPhotoBrowser(taxonId: number, traitId: string) {
     photoBrowserState = { show: true, taxonId, traitId };
   }
 
-  function handlePhotoSelect(imageUrl: string, linkUrl: string) {
+  function handlePhotoSelect(imageUrl: string, linkUrl: string, attribution: string) {
     if (!photoBrowserState) return;
     updateCell(photoBrowserState.taxonId, photoBrowserState.traitId, {
       imageUrl,
-      linkUrl
+      linkUrl,
+      photoAttribution: attribution
     });
     photoBrowserState = null;
   }
@@ -268,6 +274,14 @@
                         </button>
                       {/if}
                     {/if}
+                    <input
+                      type="text"
+                      value={getCell(taxon.id, trait.id)?.photoAttribution || ''}
+                      oninput={(e) => updateCell(taxon.id, trait.id, {
+                        photoAttribution: e.currentTarget.value
+                      })}
+                      placeholder="Photo attribution (optional)..."
+                    />
                     <input
                       type="text"
                       value={getCell(taxon.id, trait.id)?.linkUrl || ''}

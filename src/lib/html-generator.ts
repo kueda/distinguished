@@ -15,6 +15,7 @@ interface Cell {
   description: string;
   imageUrl: string;
   cropBox?: CropBox;
+  photoAttribution?: string;
   linkUrl?: string;
 }
 
@@ -57,14 +58,16 @@ export function generateCommentHTML(
             ? generateWeservURL(cell.imageUrl, cell.cropBox)
             : cell.imageUrl;
 
-          if (cell.linkUrl) {
-            html += `        <p><a href="${cell.linkUrl}">\n`;
-            html += `          <img class="img-responsive" src="${imgSrc}" alt="${cell.description || trait.description}" />\n`;
-            html += '        </a></p>\n';
+          const imgTag = `<img class="img-responsive" src="${imgSrc}" alt="${cell.description || trait.description}" />`;
+          const imgContent = cell.linkUrl ? `<a href="${cell.linkUrl}">${imgTag}</a>` : imgTag;
+
+          if (cell.photoAttribution) {
+            html += `        <figure>\n`;
+            html += `          ${imgContent}\n`;
+            html += `          <figcaption>${cell.photoAttribution}</figcaption>\n`;
+            html += '        </figure>\n';
           } else {
-            html += `        <p>\n`;
-            html += `          <img class="img-responsive" src="${imgSrc}" alt="${cell.description || trait.description}" />\n`;
-            html += '        </p>\n';
+            html += `        <p>${imgContent}</p>\n`;
           }
         }
       }
@@ -115,16 +118,27 @@ export function generateJournalHTML(
           const tag = cell.linkUrl ? 'a' : 'div';
           const hrefAttr = cell.linkUrl ? ` href="${cell.linkUrl}"` : '';
 
-          html += `        <${tag}${hrefAttr} style="${containerStyle}">\n`;
-          html += `          <img src="${cell.imageUrl}" style="${imageStyle}" alt="${cell.description || trait.description}" />\n`;
-          html += `        </${tag}>\n`;
-        } else if (cell.imageUrl) {
-          if (cell.linkUrl) {
-            html += `        <a href="${cell.linkUrl}">\n`;
-            html += `          <img style="width: 100%" src="${cell.imageUrl}" alt="${cell.description || trait.description}" />\n`;
-            html += '        </a>\n';
+          const imgContent = `<${tag}${hrefAttr} style="${containerStyle}"><img src="${cell.imageUrl}" style="${imageStyle}" alt="${cell.description || trait.description}" /></${tag}>`;
+
+          if (cell.photoAttribution) {
+            html += `        <figure>\n`;
+            html += `          ${imgContent}\n`;
+            html += `          <figcaption>${cell.photoAttribution}</figcaption>\n`;
+            html += '        </figure>\n';
           } else {
-            html += `        <img style="width: 100%" src="${cell.imageUrl}" alt="${cell.description || trait.description}" />\n`;
+            html += `        ${imgContent}\n`;
+          }
+        } else if (cell.imageUrl) {
+          const imgTag = `<img style="width: 100%" src="${cell.imageUrl}" alt="${cell.description || trait.description}" />`;
+          const imgContent = cell.linkUrl ? `<a href="${cell.linkUrl}">${imgTag}</a>` : imgTag;
+
+          if (cell.photoAttribution) {
+            html += `        <figure>\n`;
+            html += `          ${imgContent}\n`;
+            html += `          <figcaption>${cell.photoAttribution}</figcaption>\n`;
+            html += '        </figure>\n';
+          } else {
+            html += `        ${imgContent}\n`;
           }
         }
       }
@@ -161,5 +175,5 @@ function generateCSSCropImage(imageUrl: string, cropBox: CropBox): string {
   const offsetX = (parseFloat(centerXPercent) - 50).toFixed(2);
   const offsetY = (parseFloat(centerYPercent) - 50).toFixed(2);
 
-  return `position: absolute; width: ${imageWidthPercent}%; height: auto; left: 50%; top: 50%; transform: translate(calc(-50% - ${offsetX}%), calc(-50% - ${offsetY}%));`;
+  return `position: absolute; width: ${imageWidthPercent}%; max-width: revert; height: auto; left: 50%; top: 50%; transform: translate(calc(-50% - ${offsetX}%), calc(-50% - ${offsetY}%));`;
 }
