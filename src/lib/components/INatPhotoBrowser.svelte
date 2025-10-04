@@ -1,10 +1,5 @@
 <script lang="ts">
-  interface Photo {
-    url: string;
-    observationUrl: string;
-    id: number;
-    attribution: string;
-  }
+  import { fetchObservationPhotos, type Photo } from '$lib/inat-api';
 
   interface Props {
     taxonId: number;
@@ -23,24 +18,7 @@
     try {
       loading = true;
       error = null;
-      const response = await fetch(
-        `https://api.inaturalist.org/v1/observations?quality_grade=research,needs_id&taxon_id=${taxonId}&per_page=200&order=desc&order_by=votes`
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch observations');
-      }
-
-      const data = await response.json();
-      photos = data.results
-        .filter((obs: any) => obs.photos && obs.photos.length > 0)
-        .map((obs: any) => ({
-          url: obs.photos[0].url,
-          observationUrl: obs.uri,
-          id: obs.id,
-          attribution: obs.photos[0].attribution
-        }));
-
+      photos = await fetchObservationPhotos(taxonId);
       loading = false;
     } catch (e) {
       error = e instanceof Error ? e.message : 'Unknown error';

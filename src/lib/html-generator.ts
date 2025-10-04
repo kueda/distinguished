@@ -1,23 +1,5 @@
 import type { Taxon } from './inat-api';
-
-interface CropBox {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  imgWidth: number;
-  imgHeight: number;
-}
-
-interface Cell {
-  taxonId: number;
-  traitId: string;
-  description: string;
-  imageUrl: string;
-  cropBox?: CropBox;
-  photoAttribution?: string;
-  linkUrl?: string;
-}
+import type { CropBox, Cell } from '../app';
 
 interface Trait {
   id: string;

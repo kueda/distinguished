@@ -1,12 +1,5 @@
 <script lang="ts">
-  interface CropBox {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    imgWidth: number;
-    imgHeight: number;
-  }
+  import type { CropBox } from '../../app';
 
   interface Props {
     imageUrl: string;

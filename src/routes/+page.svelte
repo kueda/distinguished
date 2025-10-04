@@ -4,29 +4,11 @@
   import ImageCropper from '$lib/components/ImageCropper.svelte';
   import INatPhotoBrowser from '$lib/components/INatPhotoBrowser.svelte';
   import { generateCommentHTML, generateJournalHTML } from '$lib/html-generator';
+  import type { CropBox, Cell } from '../app';
 
   interface Trait {
     id: string;
     description: string;
-  }
-
-  interface CropBox {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    imgWidth: number;
-    imgHeight: number;
-  }
-
-  interface Cell {
-    taxonId: number;
-    traitId: string;
-    description: string;
-    imageUrl: string;
-    cropBox?: CropBox;
-    photoAttribution?: string;
-    linkUrl?: string;
   }
 
   let taxa = $state<Taxon[]>([]);

@@ -10,4 +10,21 @@ declare global {
   }
 }
 
-export {};
+export interface CropBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  imgWidth: number;
+  imgHeight: number;
+}
+
+export interface Cell {
+  taxonId: number;
+  traitId: string;
+  description: string;
+  imageUrl: string;
+  cropBox?: CropBox;
+  photoAttribution?: string;
+  linkUrl?: string;
+}
