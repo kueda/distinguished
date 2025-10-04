@@ -133,122 +133,121 @@
 <div class="app">
 	<h1>Distinguished</h1>
 
-	<section class="taxon-selector">
-		<h2>Taxa</h2>
-		<div class="search-box">
-			<input
-				type="text"
-				bind:value={searchQuery}
-				placeholder="Search for a taxon..."
-				oninput={handleSearch}
-			/>
-			{#if searchResults.length > 0}
-				<ul class="results">
-					{#each searchResults as result}
-						<li>
-							<button onclick={() => addTaxon(result)}>
-								<strong>{result.name}</strong>
-								{#if result.preferred_common_name}
-									({result.preferred_common_name})
-								{/if}
-								- {result.rank}
-							</button>
-						</li>
-					{/each}
-				</ul>
-			{/if}
-		</div>
-		<ul class="selected-taxa">
-			{#each taxa as taxon}
-				<li>
-					<strong>{taxon.name}</strong>
-					<button onclick={() => removeTaxon(taxon.id)}>Remove</button>
-				</li>
-			{/each}
-		</ul>
-	</section>
-
-	<section class="traits-section">
-		<h2>Traits</h2>
-		<button onclick={addTrait}>Add Trait</button>
-		<ul>
-			{#each traits as trait}
-				<li>
-					<input
-						type="text"
-						value={trait.description}
-						oninput={(e) => updateTrait(trait.id, e.currentTarget.value)}
-						placeholder="Trait description..."
-					/>
-					<button onclick={() => removeTrait(trait.id)}>Remove</button>
-				</li>
-			{/each}
-		</ul>
-	</section>
-
 	<section class="table-editor">
-		<h2>Table</h2>
-		{#if taxa.length > 0 && traits.length > 0}
-			<table>
+		<table>
 				<thead>
 					<tr>
 						<th></th>
 						{#each taxa as taxon}
-							<th>{taxon.name}</th>
+							<th>
+								<div class="taxon-header">
+									<span>{taxon.name}</span>
+									<button onclick={() => removeTaxon(taxon.id)}>Remove</button>
+								</div>
+							</th>
 						{/each}
+						<th class="control-cell">
+							<div class="search-box">
+								<label>
+									Add a Taxon
+									<input
+										type="text"
+										bind:value={searchQuery}
+										placeholder="Search for a taxon..."
+										oninput={handleSearch}
+									/>
+								</label>
+								{#if searchResults.length > 0}
+									<ul class="results">
+										{#each searchResults as result}
+											<li>
+												<button onclick={() => addTaxon(result)}>
+													<strong>{result.name}</strong>
+													{#if result.preferred_common_name}
+														({result.preferred_common_name})
+													{/if}
+													- {result.rank}
+												</button>
+											</li>
+										{/each}
+									</ul>
+								{/if}
+							</div>
+						</th>
 					</tr>
 				</thead>
 				<tbody>
 					{#each traits as trait}
 						<tr>
-							<th>{trait.description}</th>
+							<th class="control-cell">
+								<div class="trait-header">
+									<input
+										type="text"
+										value={trait.description}
+										oninput={(e) => updateTrait(trait.id, e.currentTarget.value)}
+										placeholder="Trait description..."
+									/>
+									<button onclick={() => removeTrait(trait.id)}>Remove</button>
+								</div>
+							</th>
 							{#each taxa as taxon}
 								<td>
-									<textarea
-										value={getCell(taxon.id, trait.id)?.description || ''}
-										oninput={(e) => updateCell(taxon.id, trait.id, {
-											description: e.currentTarget.value
-										})}
-										placeholder="How is {trait.description} different in {taxon.name}?"
-									></textarea>
-									<input
-										type="text"
-										value={getCell(taxon.id, trait.id)?.imageUrl || ''}
-										oninput={(e) => updateCell(taxon.id, trait.id, {
-											imageUrl: e.currentTarget.value
-										})}
-										placeholder="Image URL..."
-									/>
-									{#if getCell(taxon.id, trait.id)?.imageUrl}
-										{@const cell = getCell(taxon.id, trait.id)}
-										{#if cell?.cropBox}
-											<div class="crop-info">
-												<small>
-													Crop: {cell.cropBox.width}×{cell.cropBox.height} at ({cell.cropBox.x}, {cell.cropBox.y})
-												</small>
-												<button onclick={() => clearCrop(taxon.id, trait.id)}>Clear Crop</button>
-											</div>
-										{:else}
-											<button onclick={() => openCropper(taxon.id, trait.id)}>
-												Crop Image
-											</button>
+									<div class="taxon-trait">
+										<textarea
+											value={getCell(taxon.id, trait.id)?.description || ''}
+											oninput={(e) => updateCell(taxon.id, trait.id, {
+												description: e.currentTarget.value
+											})}
+											placeholder="How is/are {trait.description} different in {taxon.name}?"
+										></textarea>
+										<input
+											type="text"
+											value={getCell(taxon.id, trait.id)?.imageUrl || ''}
+											oninput={(e) => updateCell(taxon.id, trait.id, {
+												imageUrl: e.currentTarget.value
+											})}
+											placeholder="Image URL..."
+										/>
+										{#if getCell(taxon.id, trait.id)?.imageUrl}
+											{@const cell = getCell(taxon.id, trait.id)}
+											{#if cell?.cropBox}
+												<div class="crop-info">
+													<small>
+														Crop: {cell.cropBox.width}×{cell.cropBox.height} at ({cell.cropBox.x}, {cell.cropBox.y})
+													</small>
+													<button onclick={() => clearCrop(taxon.id, trait.id)}>Clear Crop</button>
+												</div>
+											{:else}
+												<button onclick={() => openCropper(taxon.id, trait.id)}>
+													Crop Image
+												</button>
+											{/if}
 										{/if}
-									{/if}
-									<input
-										type="text"
-										value={getCell(taxon.id, trait.id)?.linkUrl || ''}
-										oninput={(e) => updateCell(taxon.id, trait.id, {
-											linkUrl: e.currentTarget.value
-										})}
-										placeholder="Link URL (optional)..."
-									/>
+										<input
+											type="text"
+											value={getCell(taxon.id, trait.id)?.linkUrl || ''}
+											oninput={(e) => updateCell(taxon.id, trait.id, {
+												linkUrl: e.currentTarget.value
+											})}
+											placeholder="Link URL (optional)..."
+										/>
+									</div>
 								</td>
 							{/each}
+							<td></td>
 						</tr>
 					{/each}
+					<tr>
+						<th class="control-cell">
+							<button onclick={addTrait}>Add Trait</button>
+						</th>
+						{#each taxa as taxon}
+							<td></td>
+						{/each}
+						<td></td>
+					</tr>
 				</tbody>
-			</table>
-		{/if}
+		</table>
 	</section>
 
 	<section class="output">
@@ -291,8 +290,20 @@
 		padding: 20px;
 	}
 
+	.control-cell {
+		max-width: 100px;
+	}
 	.search-box {
 		position: relative;
+	}
+
+	.search-box label {
+		display: flex;
+		flex-direction: column;
+		justify-items: stretch;
+	}
+	.search-box input {
+		display: block;
 	}
 
 	.results {
@@ -321,9 +332,27 @@
 		background: #f0f0f0;
 	}
 
-	.selected-taxa {
-		list-style: none;
-		padding: 0;
+	.taxon-header {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		align-items: center;
+	}
+
+	.taxon-header span {
+		font-style: italic;
+	}
+
+	.trait-header {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		align-items: center;
+	}
+
+	.trait-header input {
+		flex: 1;
+		margin-bottom: 0;
 	}
 
 	table {
@@ -337,14 +366,17 @@
 	}
 
 	textarea {
-		width: 100%;
 		min-height: 60px;
-		margin-bottom: 4px;
 	}
 
 	input[type="text"] {
-		width: 100%;
-		margin-bottom: 4px;
+		max-width: 100%;
+	}
+
+	.taxon-trait {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
 	}
 
 	.crop-info {
