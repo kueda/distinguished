@@ -190,6 +190,7 @@
 
 <div class="app">
   <h1>Distinguished</h1>
+  <p>Make comparison tables of species traits with photos for use on iNaturalist.</p>
 
   <section class="table-editor">
     <table>
@@ -371,6 +372,8 @@
     {/if}
   </section>
 </div>
+
+
 
 {#if cropperState}
   <ImageCropper
@@ -554,6 +557,9 @@
   }
   :global(table.table) {
     width: 100%;
+  }
+  :global(table.table th, table td) {
+    vertical-align: top;
   }
   :global(figure) {
     margin: 0;
