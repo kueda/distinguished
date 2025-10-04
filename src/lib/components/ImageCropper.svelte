@@ -19,25 +19,50 @@
   let imageElement = $state<HTMLImageElement>();
   let selectionBox = $state({ display: false, left: 0, top: 0, width: 0, height: 0 });
   let isDrawing = $state(false);
+  let isDragging = $state(false);
   let startX = $state(0);
   let startY = $state(0);
+  let dragStartX = $state(0);
+  let dragStartY = $state(0);
+  let dragOffsetX = $state(0);
+  let dragOffsetY = $state(0);
   let forceSquare = $state(true);
   let overlayMouseDownTarget: EventTarget | null = null;
+
+  function isInsideBox(x: number, y: number): boolean {
+    return x >= selectionBox.left &&
+           x <= selectionBox.left + selectionBox.width &&
+           y >= selectionBox.top &&
+           y <= selectionBox.top + selectionBox.height;
+  }
 
   function handleMouseDown(e: MouseEvent) {
     e.preventDefault();
     if (!imageElement) return;
     const rect = imageElement.getBoundingClientRect();
-    startX = e.clientX - rect.left;
-    startY = e.clientY - rect.top;
-    isDrawing = true;
-    selectionBox = {
-      display: true,
-      left: startX,
-      top: startY,
-      width: 0,
-      height: 0
-    };
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    // Check if clicking inside existing box to drag it
+    if (selectionBox.display && isInsideBox(mouseX, mouseY)) {
+      isDragging = true;
+      dragStartX = mouseX;
+      dragStartY = mouseY;
+      dragOffsetX = mouseX - selectionBox.left;
+      dragOffsetY = mouseY - selectionBox.top;
+    } else {
+      // Start drawing new box
+      startX = mouseX;
+      startY = mouseY;
+      isDrawing = true;
+      selectionBox = {
+        display: true,
+        left: startX,
+        top: startY,
+        width: 0,
+        height: 0
+      };
+    }
 
     // Add document-level listeners
     document.addEventListener('mousemove', handleMouseMove);
@@ -45,31 +70,49 @@
   }
 
   function handleMouseMove(e: MouseEvent) {
-    if (!isDrawing || !imageElement) return;
+    if (!imageElement) return;
     e.preventDefault();
     const rect = imageElement.getBoundingClientRect();
-    const currentX = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
-    const currentY = Math.max(0, Math.min(e.clientY - rect.top, rect.height));
 
-    let width = Math.abs(currentX - startX);
-    let height = Math.abs(currentY - startY);
+    if (isDragging) {
+      // Dragging existing box
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
 
-    if (forceSquare) {
-      const size = Math.min(width, height);
-      width = size;
-      height = size;
+      let newLeft = mouseX - dragOffsetX;
+      let newTop = mouseY - dragOffsetY;
+
+      // Constrain to image bounds
+      newLeft = Math.max(0, Math.min(newLeft, rect.width - selectionBox.width));
+      newTop = Math.max(0, Math.min(newTop, rect.height - selectionBox.height));
+
+      selectionBox = { ...selectionBox, left: newLeft, top: newTop };
+    } else if (isDrawing) {
+      // Drawing new box
+      const currentX = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+      const currentY = Math.max(0, Math.min(e.clientY - rect.top, rect.height));
+
+      let width = Math.abs(currentX - startX);
+      let height = Math.abs(currentY - startY);
+
+      if (forceSquare) {
+        const size = Math.min(width, height);
+        width = size;
+        height = size;
+      }
+
+      // Calculate position based on drag direction
+      const x = currentX < startX ? startX - width : startX;
+      const y = currentY < startY ? startY - height : startY;
+
+      selectionBox = { display: true, left: x, top: y, width, height };
     }
-
-    // Calculate position based on drag direction
-    const x = currentX < startX ? startX - width : startX;
-    const y = currentY < startY ? startY - height : startY;
-
-    selectionBox = { display: true, left: x, top: y, width, height };
   }
 
   function handleMouseUp() {
-    if (!isDrawing || !imageElement) return;
+    if (!imageElement) return;
     isDrawing = false;
+    isDragging = false;
 
     // Remove document-level listeners
     document.removeEventListener('mousemove', handleMouseMove);
@@ -188,7 +231,11 @@
     position: absolute;
     border: 2px solid #3b82f6;
     background: rgba(59, 130, 246, 0.1);
-    pointer-events: none;
+    /*pointer-events: none;*/
+    cursor: move;
+  }
+  .selection-box:hover {
+
   }
 
   .buttons {
