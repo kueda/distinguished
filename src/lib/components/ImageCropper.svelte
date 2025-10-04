@@ -168,11 +168,32 @@
     }
     overlayMouseDownTarget = null;
   }
+
+  function handleOverlayKeyDown(e: KeyboardEvent) {
+    if (e.key === 'Escape') {
+      onCancel();
+    }
+  }
 </script>
 
-<div class="modal-overlay" onmousedown={handleOverlayMouseDown} onclick={handleOverlayClick}>
-  <div class="modal" onclick={(e) => e.stopPropagation()} onmousedown={(e) => e.stopPropagation()}>
-    <h3>Crop Image</h3>
+<div
+  class="modal-overlay"
+  role="presentation"
+  onmousedown={handleOverlayMouseDown}
+  onclick={handleOverlayClick}
+  onkeydown={handleOverlayKeyDown}
+>
+  <div
+    class="modal"
+    role="dialog"
+    tabindex="0"
+    aria-modal="true"
+    aria-labelledby="crop-modal-title"
+    onclick={(e) => e.stopPropagation()}
+    onmousedown={(e) => e.stopPropagation()}
+    onkeydown={(e) => e.stopPropagation()}
+  >
+    <h3 id="crop-modal-title">Crop Image</h3>
     <p>Click and drag to select the area to crop</p>
 
     <label>
@@ -180,8 +201,12 @@
       Lock to square aspect ratio
     </label>
 
+    <!-- This is a mouse-only interface for drawing crop boxes on images. People using a screen reader will probably not benefit from this anyway -->
+    <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
     <div
       class="image-container"
+      role="application"
+      aria-label="Image cropping area - click and drag to select crop region"
       onmousedown={handleMouseDown}
     >
       <img
@@ -256,9 +281,6 @@
     background: rgba(59, 130, 246, 0.1);
     /*pointer-events: none;*/
     cursor: move;
-  }
-  .selection-box:hover {
-
   }
 
   .buttons {
