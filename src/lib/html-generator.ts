@@ -44,11 +44,61 @@ function formatTaxonName(
     : `<i>${taxon.name}</i>`;
 }
 
-export function generateCommentHTML(
+type ImageRenderer = (
+  cell: Cell,
+  trait: Trait
+) => string;
+
+function generateCommentImage(cell: Cell, trait: Trait): string {
+  if (!cell.imageUrl) return '';
+
+  const imgSrc = cell.cropBox
+    ? generateWeservURL(cell.imageUrl, cell.cropBox)
+    : cell.imageUrl;
+
+  const imgTag = `<img class="img-responsive" src="${imgSrc}" alt="${cell.description || trait.description}" />`;
+  const imgContent = cell.linkUrl ? `<a href="${cell.linkUrl}">${imgTag}</a>` : imgTag;
+
+  if (cell.photoAttribution) {
+    return `        <figure>\n          ${imgContent}\n          <figcaption>${cell.photoAttribution}</figcaption>\n        </figure>\n`;
+  }
+  return `        <p>${imgContent}</p>\n`;
+}
+
+function generateJournalImage(cell: Cell, trait: Trait): string {
+  if (!cell.imageUrl) return '';
+
+  if (cell.cropBox) {
+    const containerStyle = generateCSSCropContainer(cell.cropBox);
+    const imageStyle = generateCSSCropImage(cell.imageUrl, cell.cropBox);
+
+    const tag = cell.linkUrl ? 'a' : 'div';
+    const hrefAttr = cell.linkUrl ? ` href="${cell.linkUrl}"` : '';
+
+    const imgContent = `<${tag}${hrefAttr} style="${containerStyle}"><img src="${cell.imageUrl}" style="${imageStyle}" alt="${cell.description || trait.description}" /></${tag}>`;
+
+    if (cell.photoAttribution) {
+      return `        <figure>\n          ${imgContent}\n          <figcaption>${cell.photoAttribution}</figcaption>\n        </figure>\n`;
+    }
+    return `        ${imgContent}\n`;
+  }
+
+  const imgTag = `<img style="width: 100%" src="${cell.imageUrl}" alt="${cell.description || trait.description}" />`;
+  const imgContent = cell.linkUrl ? `<a href="${cell.linkUrl}">${imgTag}</a>` : imgTag;
+
+  if (cell.photoAttribution) {
+    return `        <figure>\n          ${imgContent}\n          <figcaption>${cell.photoAttribution}</figcaption>\n        </figure>\n`;
+  }
+  return `        ${imgContent}\n`;
+}
+
+function generateTableHTML(
   taxa: Taxon[],
   traits: Trait[],
   cells: Cell[],
-  nameFormat: 'scientific' | 'common' | 'both' = 'scientific'
+  nameFormat: 'scientific' | 'common' | 'both',
+  renderImage: ImageRenderer,
+  includeFooter: boolean = false
 ): string {
   const taxonWidth = taxa.length > 0 ? Math.floor(90 / taxa.length) : 90;
 
@@ -57,7 +107,7 @@ export function generateCommentHTML(
 
   taxa.forEach(taxon => {
     const displayName = formatTaxonName(taxon, nameFormat);
-    html += `      <th width="${taxonWidth}%">${displayName}</th>\n`;
+    html += `      <th width="${taxonWidth}%"><a href="https://www.inaturalist.org/taxa/${taxon.id}">${displayName}</a></th>\n`;
   });
 
   html += '    </tr>\n  </thead>\n  <tbody>\n';
@@ -74,24 +124,7 @@ export function generateCommentHTML(
         if (cell.description) {
           html += `        <p>${cell.description}</p>\n`;
         }
-
-        if (cell.imageUrl) {
-          const imgSrc = cell.cropBox
-            ? generateWeservURL(cell.imageUrl, cell.cropBox)
-            : cell.imageUrl;
-
-          const imgTag = `<img class="img-responsive" src="${imgSrc}" alt="${cell.description || trait.description}" />`;
-          const imgContent = cell.linkUrl ? `<a href="${cell.linkUrl}">${imgTag}</a>` : imgTag;
-
-          if (cell.photoAttribution) {
-            html += `        <figure>\n`;
-            html += `          ${imgContent}\n`;
-            html += `          <figcaption>${cell.photoAttribution}</figcaption>\n`;
-            html += '        </figure>\n';
-          } else {
-            html += `        <p>${imgContent}</p>\n`;
-          }
-        }
+        html += renderImage(cell, trait);
       }
 
       html += '      </td>\n';
@@ -101,7 +134,22 @@ export function generateCommentHTML(
   });
 
   html += '  </tbody>\n</table>';
+
+  if (includeFooter) {
+    const toolUrl = typeof window !== 'undefined' ? window.location.href : 'https://kueda.github.io/distinguished/';
+    html += `\n<p class="text-muted"><small>Built with <a href="${toolUrl}">Distinguished</a></small></p>`;
+  }
+
   return html;
+}
+
+export function generateCommentHTML(
+  taxa: Taxon[],
+  traits: Trait[],
+  cells: Cell[],
+  nameFormat: 'scientific' | 'common' | 'both' = 'scientific'
+): string {
+  return generateTableHTML(taxa, traits, cells, nameFormat, generateCommentImage);
 }
 
 export function generateJournalHTML(
@@ -110,73 +158,7 @@ export function generateJournalHTML(
   cells: Cell[],
   nameFormat: 'scientific' | 'common' | 'both' = 'scientific'
 ): string {
-  const taxonWidth = taxa.length > 0 ? Math.floor(90 / taxa.length) : 90;
-
-  let html = '<table class="table">\n';
-  html += '  <thead>\n    <tr>\n      <th width="10%"></th>\n';
-
-  taxa.forEach(taxon => {
-    const displayName = formatTaxonName(taxon, nameFormat);
-    html += `      <th width="${taxonWidth}%">${displayName}</th>\n`;
-  });
-
-  html += '    </tr>\n  </thead>\n  <tbody>\n';
-
-  traits.forEach(trait => {
-    html += '    <tr>\n';
-    html += `      <th width="10%">\n        <p>${trait.description}</p>\n      </th>\n`;
-
-    taxa.forEach(taxon => {
-      const cell = cells.find(c => c.taxonId === taxon.id && c.traitId === trait.id);
-      html += `      <td width="${taxonWidth}%">\n`;
-
-      if (cell) {
-        if (cell.description) {
-          html += `        <p>${cell.description}</p>\n`;
-        }
-
-        if (cell.imageUrl && cell.cropBox) {
-          const containerStyle = generateCSSCropContainer(cell.cropBox);
-          const imageStyle = generateCSSCropImage(cell.imageUrl, cell.cropBox);
-
-          const tag = cell.linkUrl ? 'a' : 'div';
-          const hrefAttr = cell.linkUrl ? ` href="${cell.linkUrl}"` : '';
-
-          const imgContent = `<${tag}${hrefAttr} style="${containerStyle}"><img src="${cell.imageUrl}" style="${imageStyle}" alt="${cell.description || trait.description}" /></${tag}>`;
-
-          if (cell.photoAttribution) {
-            html += `        <figure>\n`;
-            html += `          ${imgContent}\n`;
-            html += `          <figcaption>${cell.photoAttribution}</figcaption>\n`;
-            html += '        </figure>\n';
-          } else {
-            html += `        ${imgContent}\n`;
-          }
-        } else if (cell.imageUrl) {
-          const imgTag = `<img style="width: 100%" src="${cell.imageUrl}" alt="${cell.description || trait.description}" />`;
-          const imgContent = cell.linkUrl ? `<a href="${cell.linkUrl}">${imgTag}</a>` : imgTag;
-
-          if (cell.photoAttribution) {
-            html += `        <figure>\n`;
-            html += `          ${imgContent}\n`;
-            html += `          <figcaption>${cell.photoAttribution}</figcaption>\n`;
-            html += '        </figure>\n';
-          } else {
-            html += `        ${imgContent}\n`;
-          }
-        }
-      }
-
-      html += '      </td>\n';
-    });
-
-    html += '    </tr>\n';
-  });
-
-  html += '  </tbody>\n</table>';
-  const toolUrl = typeof window !== 'undefined' ? window.location.href : 'https://kueda.github.io/distinguished/';
-  html += `\n<p class="text-muted"><small>Built with <a href="${toolUrl}">Distinguished</a></small></p>`;
-  return html;
+  return generateTableHTML(taxa, traits, cells, nameFormat, generateJournalImage, true);
 }
 
 function generateWeservURL(imageUrl: string, cropBox: CropBox): string {
