@@ -32,7 +32,7 @@
   let taxa = $state<Taxon[]>([]);
   let traits = $state<Trait[]>([]);
   let cells = $state<Cell[]>([]);
-  let outputMode = $state<'comment' | 'journal'>('comment');
+  let outputMode = $state<'comment' | 'journal'>('journal');
 
   let searchQuery = $state('');
   let searchResults = $state<Taxon[]>([]);
@@ -311,13 +311,14 @@
 
   <section class="output">
     <h2>Output</h2>
-    <label>
-      <input type="radio" bind:group={outputMode} value="comment" />
-      Comment (weserv.nl proxy)
-    </label>
+    <h3>Where are you posting this?</h3>
     <label>
       <input type="radio" bind:group={outputMode} value="journal" />
-      Journal (CSS cropping)
+      Journal (uses CSS, more resilient to future changes)
+    </label>
+    <label>
+      <input type="radio" bind:group={outputMode} value="comment" />
+      Comment (uses a 3rd-party service to get around lack of CSS support)
     </label>
 
     {#if taxa.length > 0 && traits.length > 0}
