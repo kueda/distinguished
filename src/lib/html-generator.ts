@@ -121,10 +121,10 @@ export function generateJournalHTML(
         } else if (cell.imageUrl) {
           if (cell.linkUrl) {
             html += `        <a href="${cell.linkUrl}">\n`;
-            html += `          <img src="${cell.imageUrl}" alt="${cell.description || trait.description}" />\n`;
+            html += `          <img style="width: 100%" src="${cell.imageUrl}" alt="${cell.description || trait.description}" />\n`;
             html += '        </a>\n';
           } else {
-            html += `        <img src="${cell.imageUrl}" alt="${cell.description || trait.description}" />\n`;
+            html += `        <img style="width: 100%" src="${cell.imageUrl}" alt="${cell.description || trait.description}" />\n`;
           }
         }
       }

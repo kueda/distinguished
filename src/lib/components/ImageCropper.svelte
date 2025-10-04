@@ -22,6 +22,7 @@
   let startX = $state(0);
   let startY = $state(0);
   let forceSquare = $state(true);
+  let overlayMouseDownTarget: EventTarget | null = null;
 
   function handleMouseDown(e: MouseEvent) {
     e.preventDefault();
@@ -37,16 +38,19 @@
       width: 0,
       height: 0
     };
+
+    // Add document-level listeners
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
   }
 
   function handleMouseMove(e: MouseEvent) {
     if (!isDrawing || !imageElement) return;
+    e.preventDefault();
     const rect = imageElement.getBoundingClientRect();
     const currentX = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
     const currentY = Math.max(0, Math.min(e.clientY - rect.top, rect.height));
 
-    const x = Math.min(startX, currentX);
-    const y = Math.min(startY, currentY);
     let width = Math.abs(currentX - startX);
     let height = Math.abs(currentY - startY);
 
@@ -56,12 +60,20 @@
       height = size;
     }
 
+    // Calculate position based on drag direction
+    const x = currentX < startX ? startX - width : startX;
+    const y = currentY < startY ? startY - height : startY;
+
     selectionBox = { display: true, left: x, top: y, width, height };
   }
 
   function handleMouseUp() {
     if (!isDrawing || !imageElement) return;
     isDrawing = false;
+
+    // Remove document-level listeners
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', handleMouseUp);
   }
 
   function handleDone() {
@@ -84,10 +96,22 @@
       onCrop(cropBox);
     }
   }
+
+  function handleOverlayMouseDown(e: MouseEvent) {
+    overlayMouseDownTarget = e.target;
+  }
+
+  function handleOverlayClick(e: MouseEvent) {
+    // Only close if the click started and ended on the overlay (not from a drag)
+    if (e.target === overlayMouseDownTarget) {
+      onCancel();
+    }
+    overlayMouseDownTarget = null;
+  }
 </script>
 
-<div class="modal-overlay" onclick={onCancel}>
-  <div class="modal" onclick={(e) => e.stopPropagation()}>
+<div class="modal-overlay" onmousedown={handleOverlayMouseDown} onclick={handleOverlayClick}>
+  <div class="modal" onclick={(e) => e.stopPropagation()} onmousedown={(e) => e.stopPropagation()}>
     <h3>Crop Image</h3>
     <p>Click and drag to select the area to crop</p>
 
@@ -99,9 +123,6 @@
     <div
       class="image-container"
       onmousedown={handleMouseDown}
-      onmousemove={handleMouseMove}
-      onmouseup={handleMouseUp}
-      onmouseleave={() => isDrawing = false}
     >
       <img bind:this={imageElement} src={imageUrl} alt="Crop source" draggable="false" />
       {#if selectionBox.display}
