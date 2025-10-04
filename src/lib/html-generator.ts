@@ -24,10 +24,31 @@ interface Trait {
   description: string;
 }
 
+function formatTaxonName(
+  taxon: Taxon,
+  format: 'scientific' | 'common' | 'both'
+): string {
+  if (format === 'scientific') {
+    return `<i>${taxon.name}</i>`;
+  }
+
+  if (format === 'common') {
+    return taxon.preferred_common_name
+      ? taxon.preferred_common_name
+      : `<i>${taxon.name}</i>`;
+  }
+
+  // format === 'both'
+  return taxon.preferred_common_name
+    ? `${taxon.preferred_common_name} (<i>${taxon.name}</i>)`
+    : `<i>${taxon.name}</i>`;
+}
+
 export function generateCommentHTML(
   taxa: Taxon[],
   traits: Trait[],
-  cells: Cell[]
+  cells: Cell[],
+  nameFormat: 'scientific' | 'common' | 'both' = 'scientific'
 ): string {
   const taxonWidth = taxa.length > 0 ? Math.floor(90 / taxa.length) : 90;
 
@@ -35,7 +56,8 @@ export function generateCommentHTML(
   html += '  <thead>\n    <tr>\n      <th width="10%"></th>\n';
 
   taxa.forEach(taxon => {
-    html += `      <th width="${taxonWidth}%"><i>${taxon.name}</i></th>\n`;
+    const displayName = formatTaxonName(taxon, nameFormat);
+    html += `      <th width="${taxonWidth}%">${displayName}</th>\n`;
   });
 
   html += '    </tr>\n  </thead>\n  <tbody>\n';
@@ -85,7 +107,8 @@ export function generateCommentHTML(
 export function generateJournalHTML(
   taxa: Taxon[],
   traits: Trait[],
-  cells: Cell[]
+  cells: Cell[],
+  nameFormat: 'scientific' | 'common' | 'both' = 'scientific'
 ): string {
   const taxonWidth = taxa.length > 0 ? Math.floor(90 / taxa.length) : 90;
 
@@ -93,7 +116,8 @@ export function generateJournalHTML(
   html += '  <thead>\n    <tr>\n      <th width="10%"></th>\n';
 
   taxa.forEach(taxon => {
-    html += `      <th width="${taxonWidth}%"><i>${taxon.name}</i></th>\n`;
+    const displayName = formatTaxonName(taxon, nameFormat);
+    html += `      <th width="${taxonWidth}%">${displayName}</th>\n`;
   });
 
   html += '    </tr>\n  </thead>\n  <tbody>\n';

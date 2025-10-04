@@ -33,9 +33,11 @@
   let traits = $state<Trait[]>([]);
   let cells = $state<Cell[]>([]);
   let outputMode = $state<'comment' | 'journal'>('journal');
+  let nameFormat = $state<'scientific' | 'common' | 'both'>('scientific');
 
   let searchQuery = $state('');
   let searchResults = $state<Taxon[]>([]);
+  let selectedResultIndex = $state(-1);
 
   let cropperState = $state<{
     show: boolean;
@@ -53,6 +55,7 @@
 
   async function handleSearch() {
     searchResults = await searchTaxa(searchQuery);
+    selectedResultIndex = -1;
   }
 
   function addTaxon(taxon: Taxon) {
@@ -61,6 +64,25 @@
     }
     searchQuery = '';
     searchResults = [];
+    selectedResultIndex = -1;
+  }
+
+  function handleSearchKeyDown(e: KeyboardEvent) {
+    if (searchResults.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      selectedResultIndex = Math.min(selectedResultIndex + 1, searchResults.length - 1);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      selectedResultIndex = Math.max(selectedResultIndex - 1, -1);
+    } else if (e.key === 'Enter' && selectedResultIndex >= 0) {
+      e.preventDefault();
+      addTaxon(searchResults[selectedResultIndex]);
+    } else if (e.key === 'Escape') {
+      searchResults = [];
+      selectedResultIndex = -1;
+    }
   }
 
   function removeTaxon(id: number) {
@@ -157,8 +179,8 @@
 
   let generatedHTML = $derived(
     outputMode === 'comment'
-      ? generateCommentHTML(taxa, traits, cells)
-      : generateJournalHTML(taxa, traits, cells)
+      ? generateCommentHTML(taxa, traits, cells, nameFormat)
+      : generateJournalHTML(taxa, traits, cells, nameFormat)
   );
 
   async function copyHTML() {
@@ -191,12 +213,13 @@
                     bind:value={searchQuery}
                     placeholder="Search for a taxon..."
                     oninput={handleSearch}
+                    onkeydown={handleSearchKeyDown}
                   />
                 </label>
                 {#if searchResults.length > 0}
                   <ul class="results">
-                    {#each searchResults as result}
-                      <li>
+                    {#each searchResults as result, index}
+                      <li class:selected={index === selectedResultIndex}>
                         <button onclick={() => addTaxon(result)}>
                           <strong>{result.name}</strong>
                           {#if result.preferred_common_name}
@@ -321,6 +344,20 @@
       Comment (uses a 3rd-party service to get around lack of CSS support)
     </label>
 
+    <h3>Display Options</h3>
+    <label>
+      <input type="radio" bind:group={nameFormat} value="scientific" />
+      Scientific name only
+    </label>
+    <label>
+      <input type="radio" bind:group={nameFormat} value="common" />
+      Common name only
+    </label>
+    <label>
+      <input type="radio" bind:group={nameFormat} value="both" />
+      Common name (scientific name)
+    </label>
+
     {#if taxa.length > 0 && traits.length > 0}
       <div class="preview">
         <h3>Preview</h3>
@@ -399,6 +436,10 @@
 
   .results li button:hover {
     background: #f0f0f0;
+  }
+
+  .results li.selected button {
+    background: #e0e0e0;
   }
 
   .taxon-header {
