@@ -15,7 +15,7 @@
   <p>
     <small>
       <a href="https://github.com/kueda/distinguished">Source</a>
-      | Last updated {(new Date()).toUTCString()}
+      | Last updated {import.meta.env.VITE_BUILD_DATE || (new Date()).toUTCString()}
     </small>
   </p>
 </footer>
