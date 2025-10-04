@@ -2,6 +2,7 @@
   import type { Taxon } from '$lib/inat-api';
   import { searchTaxa } from '$lib/inat-api';
   import ImageCropper from '$lib/components/ImageCropper.svelte';
+  import INatPhotoBrowser from '$lib/components/INatPhotoBrowser.svelte';
   import { generateCommentHTML, generateJournalHTML } from '$lib/html-generator';
 
   interface Trait {
@@ -41,6 +42,12 @@
     taxonId: number;
     traitId: string;
     existingCropBox?: CropBox;
+  } | null>(null);
+
+  let photoBrowserState = $state<{
+    show: boolean;
+    taxonId: number;
+    traitId: string;
   } | null>(null);
 
   async function handleSearch() {
@@ -119,6 +126,27 @@
 
   function clearCrop(taxonId: number, traitId: string) {
     updateCell(taxonId, traitId, { cropBox: undefined });
+  }
+
+  function clearImage(taxonId: number, traitId: string) {
+    updateCell(taxonId, traitId, { imageUrl: '', cropBox: undefined });
+  }
+
+  function openPhotoBrowser(taxonId: number, traitId: string) {
+    photoBrowserState = { show: true, taxonId, traitId };
+  }
+
+  function handlePhotoSelect(imageUrl: string, linkUrl: string) {
+    if (!photoBrowserState) return;
+    updateCell(photoBrowserState.taxonId, photoBrowserState.traitId, {
+      imageUrl,
+      linkUrl
+    });
+    photoBrowserState = null;
+  }
+
+  function closePhotoBrowser() {
+    photoBrowserState = null;
   }
 
   let generatedHTML = $derived(
@@ -202,14 +230,28 @@
                       })}
                       placeholder="How is/are {trait.description} different in {taxon.name}?"
                     ></textarea>
-                    <input
-                      type="text"
-                      value={getCell(taxon.id, trait.id)?.imageUrl || ''}
-                      oninput={(e) => updateCell(taxon.id, trait.id, {
-                        imageUrl: e.currentTarget.value
-                      })}
-                      placeholder="Image URL..."
-                    />
+                    <div class="image-url-input">
+                      <input
+                        type="text"
+                        value={getCell(taxon.id, trait.id)?.imageUrl || ''}
+                        oninput={(e) => updateCell(taxon.id, trait.id, {
+                          imageUrl: e.currentTarget.value
+                        })}
+                        placeholder="Image URL..."
+                      />
+                      {#if getCell(taxon.id, trait.id)?.imageUrl}
+                        <button
+                          class="clear-button"
+                          onclick={() => clearImage(taxon.id, trait.id)}
+                          title="Clear image"
+                        >×</button>
+                      {/if}
+                    </div>
+                    {#if !getCell(taxon.id, trait.id)?.imageUrl}
+                      <button onclick={() => openPhotoBrowser(taxon.id, trait.id)}>
+                        Add iNat Photo
+                      </button>
+                    {/if}
                     {#if getCell(taxon.id, trait.id)?.imageUrl}
                       {@const cell = getCell(taxon.id, trait.id)}
                       {#if cell?.cropBox}
@@ -284,6 +326,14 @@
     existingCropBox={cropperState.existingCropBox}
     onCrop={handleCrop}
     onCancel={closeCropper}
+  />
+{/if}
+
+{#if photoBrowserState}
+  <INatPhotoBrowser
+    taxonId={photoBrowserState.taxonId}
+    onSelect={handlePhotoSelect}
+    onCancel={closePhotoBrowser}
   />
 {/if}
 
@@ -381,6 +431,33 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+  }
+
+  .image-url-input {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .image-url-input input {
+    flex: 1;
+    padding-right: 30px;
+  }
+
+  .clear-button {
+    position: absolute;
+    right: 4px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    color: #999;
+    padding: 4px 8px;
+  }
+
+  .clear-button:hover {
+    color: #333;
   }
 
   .crop-info {
