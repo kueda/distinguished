@@ -40,6 +40,7 @@
     imageUrl: string;
     taxonId: number;
     traitId: string;
+    existingCropBox?: CropBox;
   } | null>(null);
 
   async function handleSearch() {
@@ -94,14 +95,15 @@
     }
   }
 
-  function openCropper(taxonId: number, traitId: string) {
+  function openCropper(taxonId: number, traitId: string, editExisting = false) {
     const cell = getCell(taxonId, traitId);
     if (!cell?.imageUrl) return;
     cropperState = {
       show: true,
       imageUrl: cell.imageUrl,
       taxonId,
-      traitId
+      traitId,
+      existingCropBox: editExisting ? cell.cropBox : undefined
     };
   }
 
@@ -215,6 +217,7 @@
                           <small>
                             Crop: {cell.cropBox.width}×{cell.cropBox.height} at ({cell.cropBox.x}, {cell.cropBox.y})
                           </small>
+                          <button onclick={() => openCropper(taxon.id, trait.id, true)}>Edit Crop</button>
                           <button onclick={() => clearCrop(taxon.id, trait.id)}>Clear Crop</button>
                         </div>
                       {:else}
@@ -278,6 +281,7 @@
 {#if cropperState}
   <ImageCropper
     imageUrl={cropperState.imageUrl}
+    existingCropBox={cropperState.existingCropBox}
     onCrop={handleCrop}
     onCancel={closeCropper}
   />

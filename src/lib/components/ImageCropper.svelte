@@ -10,11 +10,12 @@
 
   interface Props {
     imageUrl: string;
+    existingCropBox?: CropBox;
     onCrop: (cropBox: CropBox) => void;
     onCancel: () => void;
   }
 
-  let { imageUrl, onCrop, onCancel }: Props = $props();
+  let { imageUrl, existingCropBox, onCrop, onCancel }: Props = $props();
 
   let imageElement = $state<HTMLImageElement>();
   let selectionBox = $state({ display: false, left: 0, top: 0, width: 0, height: 0 });
@@ -28,6 +29,22 @@
   let dragOffsetY = $state(0);
   let forceSquare = $state(true);
   let overlayMouseDownTarget: EventTarget | null = null;
+
+  function initializeExistingCropBox() {
+    if (!imageElement || !existingCropBox) return;
+
+    const rect = imageElement.getBoundingClientRect();
+    const scaleX = rect.width / imageElement.naturalWidth;
+    const scaleY = rect.height / imageElement.naturalHeight;
+
+    selectionBox = {
+      display: true,
+      left: existingCropBox.x * scaleX,
+      top: existingCropBox.y * scaleY,
+      width: existingCropBox.width * scaleX,
+      height: existingCropBox.height * scaleY
+    };
+  }
 
   function isInsideBox(x: number, y: number): boolean {
     return x >= selectionBox.left &&
@@ -167,7 +184,13 @@
       class="image-container"
       onmousedown={handleMouseDown}
     >
-      <img bind:this={imageElement} src={imageUrl} alt="Crop source" draggable="false" />
+      <img
+        bind:this={imageElement}
+        src={imageUrl}
+        alt="Crop source"
+        draggable="false"
+        onload={initializeExistingCropBox}
+      />
       {#if selectionBox.display}
         <div
           class="selection-box"
