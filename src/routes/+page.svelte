@@ -390,6 +390,9 @@
 {/if}
 
 <style>
+  :global(body) {
+    font-family: sans-serif;
+  }
   .app {
     max-width: 1200px;
     margin: 0 auto;
@@ -551,5 +554,11 @@
   }
   :global(table.table) {
     width: 100%;
+  }
+  :global(figure) {
+    margin: 0;
+  }
+  :global(.text-muted) {
+    color: gray;
   }
 </style>

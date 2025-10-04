@@ -1,6 +1,8 @@
-# Distinguished
+# [Distinguished](https://kueda.github.io/distinguished/)
 
 A tool for generating comparison tables of species traits with photos, designed for use in [iNaturalist](https://www.inaturalist.org) comments and journal posts. Explain how you made your identification in words and pictures.
+
+<big><a href="https://kueda.github.io/distinguished/">Try out Distinguished</a></big>
 
 ## Features
 
