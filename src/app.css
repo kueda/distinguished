@@ -1,0 +1,30 @@
+body {
+  font-family: sans-serif;
+}
+
+.img-responsive {
+  max-width: 100%;
+}
+
+table.table {
+  width: 100%;
+}
+
+table.table th,
+table.table td {
+  vertical-align: top;
+}
+
+figure {
+  margin: 0;
+}
+
+.text-muted {
+  color: gray;
+}
+
+button:focus {
+  /*border-color: lightblue;*/
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}

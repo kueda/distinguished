@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import type { CropBox } from '../../app';
 
   interface Props {
@@ -11,6 +12,9 @@
   let { imageUrl, existingCropBox, onCrop, onCancel }: Props = $props();
 
   let imageElement = $state<HTMLImageElement>();
+  let doneButton = $state<HTMLButtonElement>();
+  let cancelButton = $state<HTMLButtonElement>();
+  let checkbox = $state<HTMLInputElement>();
   let selectionBox = $state({ display: false, left: 0, top: 0, width: 0, height: 0 });
   let isDrawing = $state(false);
   let isDragging = $state(false);
@@ -127,6 +131,11 @@
     // Remove document-level listeners
     document.removeEventListener('mousemove', handleMouseMove);
     document.removeEventListener('mouseup', handleMouseUp);
+
+    // Focus the Done button after drawing/dragging
+    if (doneButton) {
+      doneButton.focus();
+    }
   }
 
   function handleDone() {
@@ -165,8 +174,31 @@
   function handleOverlayKeyDown(e: KeyboardEvent) {
     if (e.key === 'Escape') {
       onCancel();
+    } else if (e.key === 'Tab') {
+      // Trap focus within modal
+      e.preventDefault();
+      const focusableElements = [checkbox, cancelButton, doneButton].filter(Boolean);
+      if (focusableElements.length === 0) return;
+
+      const currentIndex = focusableElements.indexOf(document.activeElement as any);
+      let nextIndex: number;
+
+      if (e.shiftKey) {
+        // Shift+Tab: go backwards
+        nextIndex = currentIndex <= 0 ? focusableElements.length - 1 : currentIndex - 1;
+      } else {
+        // Tab: go forwards
+        nextIndex = currentIndex >= focusableElements.length - 1 ? 0 : currentIndex + 1;
+      }
+
+      focusableElements[nextIndex]?.focus();
     }
   }
+
+  onMount(() => {
+    // Focus the checkbox when modal opens to enable focus trapping
+    checkbox?.focus();
+  });
 </script>
 
 <div
@@ -176,6 +208,8 @@
   onclick={handleOverlayClick}
   onkeydown={handleOverlayKeyDown}
 >
+  <!-- onclick is only used to stop event propagation, not for actual functionality -->
+  <!-- svelte-ignore a11y_click_events_have_key_events -->
   <div
     class="modal"
     role="dialog"
@@ -184,13 +218,12 @@
     aria-labelledby="crop-modal-title"
     onclick={(e) => e.stopPropagation()}
     onmousedown={(e) => e.stopPropagation()}
-    onkeydown={(e) => e.stopPropagation()}
   >
     <h3 id="crop-modal-title">Crop Image</h3>
     <p>Click and drag to select the area to crop</p>
 
     <label>
-      <input type="checkbox" bind:checked={forceSquare} />
+      <input type="checkbox" bind:this={checkbox} bind:checked={forceSquare} />
       Lock to square aspect ratio
     </label>
 
@@ -223,8 +256,8 @@
     </div>
 
     <div class="buttons">
-      <button onclick={onCancel}>Cancel</button>
-      <button onclick={handleDone}>Done</button>
+      <button bind:this={cancelButton} onclick={onCancel}>Cancel</button>
+      <button bind:this={doneButton} onclick={handleDone}>Done</button>
     </div>
   </div>
 </div>

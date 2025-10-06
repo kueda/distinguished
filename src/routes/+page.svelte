@@ -375,9 +375,6 @@
 {/if}
 
 <style>
-  :global(body) {
-    font-family: sans-serif;
-  }
   .app {
     max-width: 1200px;
     margin: 0 auto;
@@ -532,21 +529,5 @@
     padding: 20px;
     border: 1px solid #ccc;
     border-radius: 4px;
-  }
-
-  :global(.img-responsive) {
-    max-width: 100%;
-  }
-  :global(table.table) {
-    width: 100%;
-  }
-  :global(table.table th, table td) {
-    vertical-align: top;
-  }
-  :global(figure) {
-    margin: 0;
-  }
-  :global(.text-muted) {
-    color: gray;
   }
 </style>
