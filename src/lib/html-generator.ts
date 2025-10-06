@@ -119,7 +119,7 @@ function generateTableHTML(
 
   if (includeFooter) {
     const toolUrl = typeof window !== 'undefined' ? window.location.href : 'https://kueda.github.io/distinguished/';
-    html += `\n<p class="text-muted"><small>Built with <a href="${toolUrl}">Distinguished</a></small></p>`;
+    html += `\n<p class="text-muted"><small>Tables made with <a href="${toolUrl}">Distinguished</a></small></p>`;
   }
 
   return html;
